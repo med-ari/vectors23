@@ -1,0 +1,1097 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vectores – Clase 23</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        chtml: {
+          displayAlign: 'left'
+        }
+      };
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #4f46e5; --primary-dark: #4338ca; --primary-light: #eef2ff;
+            --secondary-color: #64748b; --success-color: #10b981; --success-light: #ecfdf5;
+            --danger-color: #ef4444; --danger-light: #fef2f2; --warning-color: #f59e0b;
+            --light-bg: #f1f5f9; --border-color: #cbd5e1; --text-color: #1e293b;
+            --white: #ffffff; --progress-color-start: #4f46e5; --progress-color-end: #10b981;
+        }
+        @keyframes moveGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        body {
+            font-family: 'Inter', sans-serif; display: flex; justify-content: center;
+            align-items: flex-start; min-height: 100vh;
+            background: linear-gradient(-45deg, #6d28d9, #4f46e5, #d946ef, #10b981);
+            background-size: 400% 400%; animation: moveGradient 20s ease infinite;
+            margin: 0; padding: 2em 1em;
+        }
+        .main-wrapper { width: 100%; max-width: 900px; position: relative; }
+        .card { background: var(--white); padding: 2.5em; border-radius: 16px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); animation: fadeIn 0.5s ease-out; }
+        .hidden { display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDownFade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        #category-selection-screen h2 { font-size: 2em; color: var(--primary-color); text-align: center; margin-top: 0; margin-bottom: 0.5em; }
+        #category-selection-screen .subtitle { text-align: center; color: var(--secondary-color); margin-bottom: 2em; font-size: 1.1em; max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+        #category-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5em; margin-bottom: 2.5em; }
+        .category-item { background-color: var(--white); border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5em; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+        .category-item:hover:not(.completed) { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(79,70,229,0.1); border-color: var(--primary-color); }
+        .category-item h3 { margin: 0 0 0.5em 0; color: var(--primary-dark); font-size: 1.25em; }
+        .category-item p { margin: 0; color: var(--secondary-color); font-size: 0.95em; line-height: 1.5; }
+        .category-item.completed { border-color: var(--success-color); background-color: var(--success-light); cursor: default; }
+        .category-item.completed:hover { transform: none; box-shadow: none; }
+        .category-item.completed::before { content: '✔'; font-weight: bold; position: absolute; top: 1em; right: 1.2em; color: var(--success-color); font-size: 1.5em; }
+        .category-item .progress-info { margin-top: 1em; font-weight: bold; color: var(--success-color); }
+        #overall-progress-container { margin-top: 2em; text-align: center; border-top: 1px solid var(--border-color); padding-top: 2em;}
+        #overall-progress-container h3 { margin: 0 0 0.5em 0; color: var(--text-color); }
+        #overall-score { font-size: 1.2em; color: var(--secondary-color); }
+        #show-final-results-btn { padding: 12px 30px; font-size: 1em; font-weight: bold; color: var(--white); background-color: var(--success-color); border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s; margin-top: 1em; }
+        #show-final-results-btn:hover { background-color: #059669; }
+
+        /* --- New Summary Card Styles --- */
+        #summary-container h2 { font-size: 1.8em; margin-top: 0; margin-bottom: 0.2em; color: var(--primary-color); }
+        #summary-container .subtitle { color: var(--secondary-color); margin-top: 0; margin-bottom: 2em; }
+        .summary-section { margin-bottom: 2.5em; }
+        .summary-section h3 { font-size: 1.2em; font-weight: 700; color: var(--text-color); margin-bottom: 1em; padding-bottom: 0.5em; border-bottom: 2px solid var(--primary-light); display: flex; align-items: center; gap: 0.75em; }
+        .summary-key-concepts { line-height: 1.7; color: #374151; }
+        .summary-key-concepts p, .summary-key-concepts ul, .summary-key-concepts ol { margin-bottom: 1em; }
+        .summary-key-concepts ul, .summary-key-concepts ol { padding-left: 20px; }
+        .summary-key-concepts strong { color: var(--primary-dark); }
+        .summary-key-concepts mjx-container[display="true"] { background-color: rgba(79, 70, 229, 0.05); padding: 1em; border-radius: 8px; margin: 1em 0; }
+        .summary-tips-list { list-style: none; padding: 0; }
+        .summary-tips-list li { display: flex; align-items: flex-start; gap: 1em; margin-bottom: 1em; background-color: var(--primary-light); padding: 1em; border-radius: 8px; }
+        .summary-tips-list li::before { content: '💡'; font-size: 1.2em; line-height: 1.5; }
+        #summary-continue-btn { padding: 12px 30px; font-size: 1em; font-weight: bold; color: var(--white); background-color: var(--primary-color); border: none; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: block; width: 100%; }
+        #summary-continue-btn:hover { background-color: var(--primary-dark); transform: scale(1.02); }
+
+        /* --- Main Quiz & Final Screen Styles --- */
+        #quiz-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5em; }
+        #problem-header { color: var(--text-color); font-weight: 600; font-size: 1.1em; }
+        #score-counter { color: var(--success-color); font-weight: 600; font-size: 1em; background-color: var(--success-light); padding: 5px 10px; border-radius: 8px; }
+        #progress-container { width: 100%; background-color: #e2e8f0; border-radius: 10px; margin-bottom: 1.5em; height: 12px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--progress-color-start), var(--progress-color-end)); border-radius: 10px; transition: width 0.6s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        #question-container { font-size: 1.15em; line-height: 1.7; margin: 1em 0; color: var(--text-color); text-align: justify; }
+        #question-container table { width: 100%; border-collapse: collapse; margin: 1em 0; }
+        #question-container th, #question-container td { border: 1px solid var(--border-color); padding: 12px; text-align: center; }
+        #question-container th { background-color: var(--light-bg); font-weight: 600; }
+        #graph-container, .option-graph-canvas-container { width: 100%; max-width: 450px; margin: 1.5em auto; border-radius: 8px; overflow: hidden; }
+        #graph-container svg, #graph-container img, .option-graph-canvas-container svg, .option-graph-canvas-container img {max-width: 100%; height: auto; display: block; margin: 0 auto; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);}
+        #options-container { margin-top: 1.5em; display: flex; flex-direction: column; gap: 0.75em; }
+        .option-button { display: flex; align-items: center; gap: 1em; width: 100%; padding: 14px 18px; font-size: 1.05em; text-align: left; background-color: var(--white); border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: all 0.2s ease-in-out; }
+        .option-button:hover:not(.disabled) { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .option-button .label { font-weight: bold; color: var(--primary-color); }
+        .option-button .value { flex-grow: 1; }
+        .option-button.correct { border-color: var(--success-color); background-color: var(--success-light); }
+        .option-button.correct .label { color: var(--success-color); }
+        .option-button.incorrect { border-color: var(--danger-color); background-color: var(--danger-light); }
+        .option-button.incorrect .label { color: var(--danger-color); }
+        .option-button.disabled { cursor: not-allowed; }
+        .options-grid-with-graphs { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; }
+        .option-block-graph { padding: 1em; border: 2px solid var(--border-color); border-radius: 12px; cursor: pointer; transition: all 0.2s ease-in-out; background-color: var(--white); }
+        .option-block-graph:hover:not(.disabled) { border-color: var(--primary-color); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .option-block-graph.correct { border-color: var(--success-color)!important; background-color: var(--success-light); }
+        .option-block-graph.incorrect { border-color: var(--danger-color)!important; background-color: var(--danger-light); }
+        .option-block-graph .label { font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em; color: var(--primary-color); }
+        #feedback-container { margin-top: 1.5em; padding: 1.2em; border-radius: 12px; display: none; animation: slideDownFade 0.4s ease-out; line-height: 1.7; text-align: justify; }
+        #feedback-container.correct { background-color: var(--success-light); border-left: 5px solid var(--success-color); }
+        #feedback-container.incorrect { background-color: var(--danger-light); border-left: 5px solid var(--danger-color); }
+        #feedback-title { display: flex; align-items: center; font-size: 1.2em; font-weight: 700; margin-bottom: 0.5em; }
+        #feedback-title svg { width: 24px; height: 24px; margin-right: 8px; }
+        #feedback-container.correct #feedback-title { color: var(--success-color); }
+        #feedback-container.incorrect #feedback-title { color: var(--danger-color); }
+        #navigation-container { display: flex; justify-content: flex-end; margin-top: 2em; }
+        #next-button, .nav-btn { padding: 12px 30px; font-size: 1em; font-weight: bold; color: var(--white); background-color: var(--primary-color); border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+        #next-button { visibility: hidden; opacity: 0; }
+        #next-button.visible { visibility: visible; opacity: 1; }
+        #next-button:hover, .nav-btn:hover { background-color: var(--primary-dark); }
+        #final-screen { text-align: center; animation: fadeIn 0.5s ease-out; }
+        #final-screen h2 { font-size: 2.2em; color: var(--primary-color); font-weight: 700; }
+        #final-screen p { font-size: 1.2em; }
+        .highlight { color: var(--primary-color); font-weight: 700; }
+        @media (max-width: 680px) { .options-grid-with-graphs { grid-template-columns: 1fr; } #category-list { grid-template-columns: 1fr; }}
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <div id="category-selection-screen" class="card">
+            <h2>Vectores – Clase 23</h2>
+            <p class="subtitle">Selecciona un tema para comenzar. Cada sección se enfoca en una habilidad clave. ¡Completa todas las secciones para demostrar tu maestría!</p>
+            <ul id="category-list"></ul>
+            <div id="overall-progress-container" class="hidden">
+                <h3>Progreso General</h3>
+                <p id="overall-score"></p>
+                <button id="show-final-results-btn" class="nav-btn hidden">Ver Resumen Final</button>
+            </div>
+        </div>
+
+        <div id="quiz-wrapper" class="hidden">
+            <div id="summary-container" class="card hidden">
+                <h2 id="summary-title"></h2>
+                <p class="subtitle">Prepárate para la siguiente sección.</p>
+
+                <div class="summary-section">
+                    <h3>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-book-open" style="color: var(--primary-dark);"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                      Conceptos Clave y Fórmulas
+                    </h3>
+                    <div id="summary-key-concepts" class="summary-key-concepts"></div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-zap" style="color: var(--warning-color);"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                      Consejos para esta Sección
+                    </h3>
+                    <ul id="summary-tips-list" class="summary-tips-list"></ul>
+                </div>
+                
+                <button id="summary-continue-btn">Comenzar Problemas</button>
+            </div>
+
+            <div id="quiz-container" class="hidden card">
+                <div id="progress-container"><div id="progress-bar"></div></div>
+                <div id="quiz-header-bar">
+                    <div id="problem-header"></div>
+                    <div id="score-counter"></div>
+                </div>
+                <div id="question-container"></div>
+                <div id="graph-container"></div>
+                <div id="options-container"></div>
+                <div id="feedback-container"></div>
+                <div id="navigation-container"><button id="next-button">Siguiente →</button></div>
+            </div>
+
+            <div id="final-screen" class="hidden card">
+                <h2 id="final-title"></h2>
+                <p id="final-message"></p>
+                <p id="final-score" style="font-size: 2.5em; font-weight: bold; margin: 0.5em 0;"></p>
+                <p id="final-percentage" style="font-size: 1.5em;"></p>
+                <button id="back-to-menu-btn" class="nav-btn">Volver al Menú</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function renderMath() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        setTimeout(() => window.MathJax.typesetPromise(), 0);
+      }
+    }
+
+    function renderDiagram(diagram) {
+        if (!diagram) return '';
+        if (diagram.type === 'raster') {
+            return `<img src="${diagram.src}" alt="Diagrama" style="max-width: 100%; height: auto; display: block; margin: 0 auto; background: white; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;" />`;
+        }
+        return '';
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const icons = {
+            check: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>`,
+            x: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`
+        };
+        const summaries = {
+  "ai-cat-1757286729865-0": {
+    "title": "Sección 1: Conceptos Fundamentales de Vectores",
+    "key_concepts_html": "<p>Esta sección fundamental introduce los elementos esenciales del álgebra vectorial. Es crucial comprender la distinción entre <strong>magnitudes escalares</strong> y <strong>magnitudes vectoriales</strong>.</p><ul><li>Una <strong>magnitud escalar</strong> se define completamente por un valor numérico y una unidad (ej., temperatura, masa).</li><li>Una <strong>magnitud vectorial</strong> requiere <strong>módulo</strong> (magnitud), <strong>dirección</strong> y <strong>sentido</strong> (ej., velocidad, aceleración, fuerza).</li></ul><p>Los vectores se representan comúnmente en un sistema de coordenadas \n\\((x,y)\n\\) o \n\\((x,y,z)\n\\). Para un vector con origen en \n\\(P_1 = (x_1, y_1)\n\\) y extremo en \n\\(P_2 = (x_2, y_2)\n\\), sus componentes son \n\\((x_2 - x_1, y_2 - y_1)\n\\). Dos vectores tienen la misma <strong>dirección</strong> si son paralelos (pueden ser múltiplos escalares, positivos o negativos). Tienen el mismo <strong>sentido</strong> si el escalar es positivo.</p>",
+    "tips": [
+      "Presta atención a los detalles en los enunciados y diagramas.",
+      "Recuerda revisar las fórmulas y conceptos clave relacionados antes de empezar.",
+      "Usa la explicación para entender tus errores y reforzar tu aprendizaje.",
+      "¡Mucha suerte en esta sección!"
+    ]
+  },
+  "ai-cat-1757286729865-1": {
+    "title": "Sección 2: Operaciones y Módulo de Vectores",
+    "key_concepts_html": "<p>Esta sección se centra en las operaciones aritméticas básicas con vectores y el cálculo de su longitud o <strong>módulo</strong>. Las operaciones fundamentales incluyen:</p><ul><li><strong>Suma de vectores</strong>: \n\\((x_1, y_1) + (x_2, y_2) = (x_1+x_2, y_1+y_2)\\)\n\\</li><li><strong>Resta de vectores</strong>: \n\\((x_1, y_1) - (x_2, y_2) = (x_1-x_2, y_1-y_2)\\)\n\\</li><li><strong>Multiplicación por un escalar</strong> (\n\\(\\alpha\\)\n\\): \n\\(\\alpha (x,y) = (\\alpha x, \\alpha y)\\)\n\\</li></ul><p>El <strong>módulo</strong> de un vector \n\\((x,y)\\)\n\\ se calcula utilizando el teorema de Pitágoras como \n\\(\\lvert \text{vector} \rvert = \n\\sqrt{x^2 + y^2}\n\\)\n\\.</p><p>Un <strong>vector unitario</strong> es un vector cuyo módulo es \n\\(1\\)\n\\.</p>",
+    "tips": [
+      "Presta atención a los detalles en los enunciados y diagramas.",
+      "Recuerda revisar las fórmulas y conceptos clave relacionados antes de empezar.",
+      "Usa la explicación para entender tus errores y reforzar tu aprendizaje.",
+      "¡Mucha suerte en esta sección!"
+    ]
+  },
+  "ai-cat-1757286729865-2": {
+    "title": "Sección 3: Paralelismo, Perpendicularidad y Producto Punto",
+    "key_concepts_html": "<p>Esta sección introduce conceptos clave para analizar la relación geométrica entre vectores.</p><ul><li>Dos vectores \n\\(\\vec{u}\\)\n\\ y \n\\(\\vec{v}\\)\n\\ son <strong>paralelos</strong> si uno es un múltiplo escalar del otro: \n\\(\\vec{u} = k \t\\times \n\\vec{v}\\)\n\\ para algún escalar \n\\(k \\neq 0\\)\n\\ . Si \n\\(k > 0\\)\n\\, tienen el mismo sentido; si \n\\(k < 0\\)\n\\, tienen sentido opuesto.</li><li>Dos vectores \n\\(\\vec{u} = (x_1, y_1)\\)\n\\ y \n\\(\\vec{v} = (x_2, y_2)\\)\n\\ son <strong>perpendiculares</strong> (ortogonales) si su <strong>producto punto</strong> (o producto escalar) es cero.</li></ul><p>El <strong>producto punto</strong> se define como: \n\\[ \\vec{u} \\cdot \\vec{v} = x_1 x_2 + y_1 y_2 \\]\n\\ </p><p>Alternativamente, el producto punto también se relaciona con el ángulo \n\\(\\theta\\)\n\\ entre los vectores: \n\\[ \\vec{u} \\cdot \\vec{v} = \\lvert \\vec{u} \\rvert \\lvert \\vec{v} \\rvert \\cos(\\theta) \\]\n\\ </p><p>De esta relación, se deduce que el producto punto es negativo si el ángulo \n\\(\\theta\\)\n\\ está en el rango \n\\((90^\n\\circ\n\\, 270^\n\\circ)\\)\n\\ (es decir, \n\\(\\cos(\\theta) < 0\\)\n\\).</p>",
+    "tips": [
+      "Presta atención a los detalles en los enunciados y diagramas.",
+      "Recuerda revisar las fórmulas y conceptos clave relacionados antes de empezar.",
+      "Usa la explicación para entender tus errores y reforzar tu aprendizaje.",
+      "¡Mucha suerte en esta sección!"
+    ]
+  },
+  "ai-cat-1757286729865-3": {
+    "title": "Sección 4: Aplicaciones y Resolución de Problemas Complejos",
+    "key_concepts_html": "<p>Esta sección integra todos los conceptos de las secciones anteriores para abordar problemas más elaborados. Se requiere aplicar el álgebra vectorial para:</p><ul><li><strong>Resolver sistemas de ecuaciones</strong> derivados de la igualdad de componentes vectoriales (ej., \n\\((ax, by) = (cx, dy)\\)\n\\ implica \n\\(ax=cx\\)\n\\ y \n\\(by=dy)\\)\n\\).</li><li><strong>Analizar desplazamientos</strong> en un plano, sumando vectorialmente movimientos sucesivos para encontrar una posición final o un vector de traslación neto.</li><li><strong>Identificar errores</strong> en procedimientos de cálculo vectorial, prestando atención a cada paso de las operaciones.</li></ul><p>Los problemas de desplazamiento a menudo involucran la descomposición de vectores en sus componentes cardinales (Norte, Sur, Este, Oeste) y la suma de estas componentes.</p>",
+    "tips": [
+      "Presta atención a los detalles en los enunciados y diagramas.",
+      "Recuerda revisar las fórmulas y conceptos clave relacionados antes de empezar.",
+      "Usa la explicación para entender tus errores y reforzar tu aprendizaje.",
+      "¡Mucha suerte en esta sección!"
+    ]
+  }
+};
+        const allProblemsData = [
+  {
+    "text": "¿Cuál de las siguientes cantidades no se puede representar mediante un vector?",
+    "options": [
+      {
+        "text": "La velocidad de un automóvil que viaja a \n\\(85\\) \n\\(\\text{kilómetros por hora}\\)\n\\, desde Arica a Iquique."
+      },
+      {
+        "text": "La aceleración que genera un atleta, al variar la velocidad cuando va desde un punto \n\\(A\\)\n\\, hasta un punto \n\\(B\\)\n\\."
+      },
+      {
+        "text": "El peso de cierta masa, que se genera por la aceleración gravitacional, desde su centro de masa al centro de la tierra."
+      },
+      {
+        "text": "La temperatura en grados Kelvin de un metal luego de ser galvanizado con ácido clorhídrico."
+      }
+    ],
+    "correct": 3,
+    "explanation": "La temperatura es una magnitud escalar, definida únicamente por su valor numérico y unidad (\n\\(\\text{Kelvin}\\)\n\\), a diferencia de las magnitudes vectoriales (velocidad, aceleración, peso) que requieren módulo, dirección y sentido.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "2",
+    "internalId": "q-1757286729865-0.8703340770191408",
+    "id": "q-ai-cat-1757286729865-0-0"
+  },
+  {
+    "text": "¿Cuál de las siguientes afirmaciones es falsa?",
+    "options": [
+      {
+        "text": "Los vectores \n\\((3,5)\\)\n\\ y \n\\((15,25)\\)\n\\ tienen la misma dirección."
+      },
+      {
+        "text": "Los vectores \n\\((3,4)\\)\n\\ y \n\\((5,0)\\)\n\\ tienen la misma magnitud."
+      },
+      {
+        "text": "Los vectores \n\\((1,4)\\)\n\\ y \n\\((−3, −12)\\)\n\\ tienen la misma dirección."
+      },
+      {
+        "text": "Los vectores \n\\((5,12)\\)\n\\ y \n\\((10, −24)\\)\n\\ tienen el mismo sentido."
+      }
+    ],
+    "correct": 3,
+    "explanation": "Para que dos vectores tengan el mismo sentido, deben ser múltiplos escalares positivos entre sí. En este caso, el vector \n\\((10, -24)\\)\n\\ no es un múltiplo positivo de \n\\((5, 12)\\)\n\\, ya que la componente \n\\(y\\)\n\\ cambia de signo, indicando un sentido opuesto en el eje \n\\(y\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "1",
+    "internalId": "q-1757286729865-0.948987693546066",
+    "id": "q-ai-cat-1757286729865-0-1"
+  },
+  {
+    "text": "¿Cuál de las siguientes alternativas representa un vector distinto al descrito en las otras alternativas?",
+    "options": [
+      {
+        "text": "El vector que tiene origen en el punto \n\\((−2,2)\\)\n\\ y extremo en \n\\((−5,4)\\)\n\\."
+      },
+      {
+        "text": "El vector que resulta de la operación \n\\((23, 14) – (26, −12)\\)\n\\."
+      },
+      {
+        "text": "El vector que tiene origen en \n\\((0,0)\\)\n\\ y extremo en \n\\((−3,2)\\)\n\\."
+      },
+      {
+        "text": "El vector resultante de multiplicar el escalar \n\\(4\\)\n\\ con el vector \n\\((−¾, ½)\\)\n\\."
+      }
+    ],
+    "correct": 1,
+    "explanation": "Calculando cada vector: A) \n\\((−5 - (−2), 4 - 2) = (−3, 2)\\)\n\\; B) \n\\((23 - 26, 14 - (−12)) = (−3, 26)\\)\n\\; C) El vector de origen en \n\\((0,0)\\)\n\\ y extremo en \n\\((−3,2)\\)\n\\ es \n\\((−3, 2)\\)\n\\; D) \n\\(4 \times (−3/4, 1/2) = (−3, 2)\\)\n\\ . El vector distinto es el de la opción B.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "3",
+    "internalId": "q-1757286729865-0.7236559475069319",
+    "id": "q-ai-cat-1757286729865-0-2"
+  },
+  {
+    "text": "Si \n\\(A = (1,5)\\)\n\\ y \n\\(B = (3, −1)\\)\n\\ entonces \n\\(\\vec{BA} =\\)\n\\",
+    "options": [
+      {
+        "text": "\n\\((2,−6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((−2,6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((4,6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((−2,4)\\)\n\\"
+      }
+    ],
+    "correct": 1,
+    "explanation": "El vector que va de \n\\(B\\)\n\\ a \n\\(A\\)\n\\, denotado como \n\\(\\vec{BA}\\)\n\\, se calcula restando las coordenadas del punto de origen \n\\(B\\)\n\\ a las coordenadas del punto de extremo \n\\(A\\)\n\\: \n\\(\\vec{BA} = A - B = (1 - 3, 5 - (-1)) = (-2, 6)\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "39",
+    "internalId": "q-1757286729865-0.5217776394159815",
+    "id": "q-ai-cat-1757286729865-0-3"
+  },
+  {
+    "text": "El módulo del vector \n\\((24,45)\\)\n\\ es:",
+    "options": [
+      {
+        "text": "\n\\(2601\\)\n\\"
+      },
+      {
+        "text": "\n\\(576\\)\n\\"
+      },
+      {
+        "text": "\n\\(2025\\)\n\\"
+      },
+      {
+        "text": "\n\\(51\\)\n\\"
+      }
+    ],
+    "correct": 3,
+    "explanation": "El módulo de un vector \n\\((x,y)\\)\n\\ se calcula usando la fórmula \n\\(\\sqrt{x^2 + y^2}\\)\n\\ . Para el vector \n\\((24,45)\\)\n\\, el módulo es \n\\(\\sqrt{24^2 + 45^2} = \n\\sqrt{576 + 2025} = \n\\sqrt{2601} = 51\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "5",
+    "internalId": "q-1757286729865-0.7366847898307233",
+    "id": "q-ai-cat-1757286729865-1-0"
+  },
+  {
+    "text": "El módulo de la suma \n\\((5,3) + (−1, −6)\\)\n\\ es igual a:",
+    "options": [
+      {
+        "text": "\n\\(71\\)\n\\"
+      },
+      {
+        "text": "\n\\(\\sqrt{71}\\)\n\\"
+      },
+      {
+        "text": "\n\\(25\\)\n\\"
+      },
+      {
+        "text": "\n\\(5\\)\n\\"
+      }
+    ],
+    "correct": 3,
+    "explanation": "Primero se realiza la suma vectorial: \n\\((5,3) + (−1, −6) = (5 - 1, 3 - 6) = (4, −3)\\)\n\\ . Luego, se calcula el módulo del vector resultante: \n\\(\\sqrt{4^2 + (−3)^2} = \n\\sqrt{16 + 9} = \n\\sqrt{25} = 5\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "6",
+    "internalId": "q-1757286729865-0.17900873913808946",
+    "id": "q-ai-cat-1757286729865-1-1"
+  },
+  {
+    "text": "Si \n\\(\\alpha(2,4) + \\beta(−1,1) = (7,5)\\)\n\\, entonces \n\\(\\alpha + \\beta\\)\n\\ es:",
+    "options": [
+      {
+        "text": "\n\\(2\\)\n\\"
+      },
+      {
+        "text": "\n\\(−3\\)\n\\"
+      },
+      {
+        "text": "\n\\(−1\\)\n\\"
+      },
+      {
+        "text": "\n\\(1\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "Se plantea un sistema de ecuaciones a partir de la igualdad vectorial: \n\\(2\\alpha - \\beta = 7\\)\n\\ y \n\\(4\\alpha + \\beta = 5\\)\n\\ . Sumando ambas ecuaciones, obtenemos \n\\(6\\alpha = 12\\)\n\\, lo que implica \n\\(\\alpha = 2\\)\n\\ . Sustituyendo \n\\(\\alpha = 2\\)\n\\ en la primera ecuación, \n\\(2(2) - \\beta = 7 \n\\Rightarrow 4 - \\beta = 7 \n\\Rightarrow \\beta = -3\\)\n\\ . Finalmente, \n\\(\\alpha + \\beta = 2 + (-3) = -1\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "7",
+    "internalId": "q-1757286729865-0.1150022639259084",
+    "id": "q-ai-cat-1757286729865-1-2"
+  },
+  {
+    "text": "¿Cuál de los siguientes vectores no es un vector unitario?",
+    "options": [
+      {
+        "text": "\n\\((1,0)\\)\n\\"
+      },
+      {
+        "text": "\n\\((0,1)\\)\n\\"
+      },
+      {
+        "text": "\n\\((\\sqrt{2}/2, \\sqrt{2}/2)\\)\n\\"
+      },
+      {
+        "text": "\n\\((1,1)\\)\n\\"
+      }
+    ],
+    "correct": 3,
+    "explanation": "Un vector unitario tiene un módulo igual a \n\\(1\\)\n\\ . Calculando el módulo para cada opción: A) \n\\(\\sqrt{1^2 + 0^2} = 1\\)\n\\ . B) \n\\(\\sqrt{0^2 + 1^2} = 1\\)\n\\ . C) \n\\(\\sqrt{(\\sqrt{2}/2)^2 + (\\sqrt{2}/2)^2} = \n\\sqrt{2/4 + 2/4} = \n\\sqrt{1} = 1\\)\n\\ . D) \n\\(\\sqrt{1^2 + 1^2} = \n\\sqrt{2}\\)\n\\ . Por lo tanto, \n\\((1,1)\\)\n\\ no es un vector unitario.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "8",
+    "internalId": "q-1757286729865-0.08106111555537499",
+    "id": "q-ai-cat-1757286729865-1-3"
+  },
+  {
+    "text": "Si \n\\(\\alpha\\)\n\\ es un número real, entonces para que el vector \n\\(\\alpha(6,8)\\)\n\\ sea unitario, \n\\(\\alpha\\)\n\\ debe tomar el valor de:",
+    "options": [
+      {
+        "text": "\n\\(10\\)\n\\"
+      },
+      {
+        "text": "\n\\(100\\)\n\\"
+      },
+      {
+        "text": "\n\\(1/100\\)\n\\"
+      },
+      {
+        "text": "\n\\(1/10\\)\n\\"
+      }
+    ],
+    "correct": 3,
+    "explanation": "Para que el vector \n\\(\\alpha(6,8)\\)\n\\ sea unitario, su módulo debe ser \n\\(1\\)\n\\ . El módulo de \n\\((6,8)\\)\n\\ es \n\\(\\sqrt{6^2 + 8^2} = \n\\sqrt{36 + 64} = \n\\sqrt{100} = 10\\)\n\\ . Entonces, \n\\(\\lvert \\alpha \\times 10 \\rvert = 1\\)\n\\, lo que implica \n\\(\\lvert \\alpha \\rvert = 1/10\\)\n\\ . De las opciones dadas, \n\\(\\alpha = 1/10\\)\n\\ satisface esta condición.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "18",
+    "internalId": "q-1757286729865-0.06515977490866709",
+    "id": "q-ai-cat-1757286729865-1-4"
+  },
+  {
+    "text": "¿Cuál de los siguientes vectores tiene mayor módulo?",
+    "options": [
+      {
+        "text": "\n\\((3,5)\\)\n\\"
+      },
+      {
+        "text": "\n\\((2,−6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((7,0)\\)\n\\"
+      },
+      {
+        "text": "\n\\((4,4)\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "Se calculan los módulos de cada vector: A) \n\\(\\lvert (3,5) \\rvert = \n\\sqrt{3^2 + 5^2} = \n\\sqrt{9 + 25} = \n\\sqrt{34}\\)\n\\ . B) \n\\(\\lvert (2,−6) \\rvert = \n\\sqrt{2^2 + (−6)^2} = \n\\sqrt{4 + 36} = \n\\sqrt{40}\\)\n\\ . C) \n\\(\\lvert (7,0) \\rvert = \n\\sqrt{7^2 + 0^2} = \n\\sqrt{49} = 7\\)\n\\ . D) \n\\(\\lvert (4,4) \\rvert = \n\\sqrt{4^2 + 4^2} = \n\\sqrt{16 + 16} = \n\\sqrt{32}\\)\n\\ . El mayor módulo es \n\\(7\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "19",
+    "internalId": "q-1757286729865-0.1837648528419038",
+    "id": "q-ai-cat-1757286729865-1-5"
+  },
+  {
+    "text": "¿Cuál de los siguientes vectores es paralelo al vector \n\\((1,6)\\)\n\\?",
+    "options": [
+      {
+        "text": "\n\\((−1,−6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((1,−6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((−1,6)\\)\n\\"
+      },
+      {
+        "text": "\n\\((3,15)\\)\n\\"
+      }
+    ],
+    "correct": 0,
+    "explanation": "Dos vectores son paralelos si uno es un múltiplo escalar del otro. Para el vector \n\\((1,6)\\)\n\\, el vector \n\\((−1,−6)\\)\n\\ es paralelo porque \n\\((−1,−6) = -1 \\times (1,6)\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "12",
+    "internalId": "q-1757286729865-0.938949801371499",
+    "id": "q-ai-cat-1757286729865-2-0"
+  },
+  {
+    "text": "¿Cuál de los siguientes vectores es perpendicular con el vector \n\\((x, y)\\)\n\\?",
+    "options": [
+      {
+        "text": "\n\\((−y, x)\\)\n\\"
+      },
+      {
+        "text": "\n\\((x, −y)\\)\n\\"
+      },
+      {
+        "text": "\n\\((−x, −y)\\)\n\\"
+      },
+      {
+        "text": "\n\\((−y, −x)\\)\n\\"
+      }
+    ],
+    "correct": 0,
+    "explanation": "Dos vectores \n\\(\\vec{u} = (x_1, y_1)\\)\n\\ y \n\\(\\vec{v} = (x_2, y_2)\\)\n\\ son perpendiculares si su producto punto es cero, es decir, \n\\(\\vec{u} \\cdot \\vec{v} = x_1 x_2 + y_1 y_2 = 0\\)\n\\ . Para \n\\((x,y)\\)\n\\ y \n\\((−y, x)\\)\n\\, el producto punto es \n\\(x(−y) + y(x) = −xy + xy = 0\\)\n\\, por lo tanto, son perpendiculares.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "24",
+    "internalId": "q-1757286729865-0.5630569755014854",
+    "id": "q-ai-cat-1757286729865-2-1"
+  },
+  {
+    "text": "El valor que debe tener \n\\(\\alpha\\)\n\\ para que los vectores \n\\((2,5)\\)\n\\ y \n\\((−10, \\alpha − 1)\\)\n\\ sean perpendiculares es:",
+    "options": [
+      {
+        "text": "\n\\(−5\\)\n\\"
+      },
+      {
+        "text": "\n\\(5\\)\n\\"
+      },
+      {
+        "text": "\n\\(21/5\\)\n\\"
+      },
+      {
+        "text": "\n\\(4\\)\n\\"
+      }
+    ],
+    "correct": 1,
+    "explanation": "Dos vectores son perpendiculares si su producto punto es cero. Establecemos la ecuación: \n\\((2,5) \\cdot (−10, \\alpha - 1) = 0\\)\n\\ . Esto da como resultado \n\\(2 \\times (−10) + 5 \\times (\\alpha - 1) = 0\\)\n\\ . Simplificando, \n\\(-20 + 5\\alpha - 5 = 0\\)\n\\, lo que lleva a \n\\(5\\alpha - 25 = 0\\)\n\\, por lo tanto, \n\\(5\\alpha = 25\\)\n\\ y \n\\(\\alpha = 5\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "11",
+    "internalId": "q-1757286729865-0.9260814234496252",
+    "id": "q-ai-cat-1757286729865-2-2"
+  },
+  {
+    "text": "El producto punto entre \n\\((2,9)\\)\n\\ y \n\\((−1,1)\\)\n\\ es:",
+    "options": [
+      {
+        "text": "\n\\((−2,9)\\)\n\\"
+      },
+      {
+        "text": "\n\\(11\\)\n\\"
+      },
+      {
+        "text": "\n\\(7\\)\n\\"
+      },
+      {
+        "text": "\n\\(−7\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "El producto punto de dos vectores \n\\((x_1, y_1)\\)\n\\ y \n\\((x_2, y_2)\\)\n\\ se calcula como \n\\(x_1 x_2 + y_1 y_2\\)\n\\ . Para \n\\((2,9)\\)\n\\ y \n\\((−1,1)\\)\n\\, el producto punto es \n\\(2 \\times (−1) + 9 \\times 1 = −2 + 9 = 7\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "14",
+    "internalId": "q-1757286729865-0.625845729054986",
+    "id": "q-ai-cat-1757286729865-2-3"
+  },
+  {
+    "text": "En la figura original se muestran cuatro pares de vectores \n\\((\\vec{v}\\)\n\\ y \n\\(\\vec{w})\\)\n\\ con distintos ángulos entre ellos (\n\\(15^\n\\circ\n\\, 45^\n\\circ\n\\, 135^\n\\circ\n\\, 90^\n\\circ)\\)\n\\ . ¿En cuál de las siguientes figuras el producto punto entre \n\\(\\vec{v}\\)\n\\ y \n\\(\\vec{w}\\)\n\\ es negativo?",
+    "options": [
+      {
+        "text": "(Figura con ángulo de \n\\(15^\n\\circ)\\)\n\\",
+        "diagram": {
+          "type": "raster",
+          "src": "images/1757287823455-3sjl6u16kix-Screenshot_20250907_202635.png",
+          "filename": "Screenshot_20250907_202635.png"
+        }
+      },
+      {
+        "text": "(Figura con ángulo de \n\\(45^\n\\circ)\\)\n\\",
+        "diagram": {
+          "type": "raster",
+          "src": "images/1757287823455-v7stz0c8ona-Screenshot_20250907_202705.png",
+          "filename": "Screenshot_20250907_202705.png"
+        }
+      },
+      {
+        "text": "(Figura con ángulo de \n\\(135^\n\\circ)\\)\n\\",
+        "diagram": {
+          "type": "raster",
+          "src": "images/1757287823455-rpswg0emqbd-Screenshot_20250907_202721.png",
+          "filename": "Screenshot_20250907_202721.png"
+        }
+      },
+      {
+        "text": "(Figura con ángulo de \n\\(90^\n\\circ)\\)\n\\",
+        "diagram": {
+          "type": "raster",
+          "src": "images/1757287823455-fbz4ctdmuh-Screenshot_20250907_202739.png",
+          "filename": "Screenshot_20250907_202739.png"
+        }
+      }
+    ],
+    "correct": 2,
+    "explanation": "El producto punto entre dos vectores \n\\(\\vec{v}\\)\n\\ y \n\\(\\vec{w}\\)\n\\ se define como \n\\(\\vec{v} \\cdot \\vec{w} = \\lvert \\vec{v} \\rvert \\lvert \\vec{w} \\rvert \\cos(\\theta)\\)\n\\, donde \n\\(\\theta\\)\n\\ es el ángulo entre ellos. Para que el producto punto sea negativo, el coseno del ángulo debe ser negativo. Esto ocurre cuando el ángulo \n\\(\\theta\\)\n\\ está entre \n\\(90^\n\\circ\n\\)\n\\ y \n\\(270^\n\\circ\\)\n\\ . De las opciones, un ángulo de \n\\(135^\n\\circ\\)\n\\ resulta en un coseno negativo.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "35",
+    "internalId": "q-1757286729865-0.8988196753947725",
+    "id": "q-ai-cat-1757286729865-2-4"
+  },
+  {
+    "text": "José observa el desarrollo de su amigo Camilo cuando trata de encontrar los valores de \n\\(x\\)\n\\ e \n\\(y\\)\n\\ en una igualdad de \n\\(2\\)\n\\ vectores: \n\\((2x, y) = (5y, 16 – 6x)\\)\n\\ . El procedimiento de Camilo presenta un error. ¿En cuál paso pudo haber cometido el primer error, Camilo?<ul><li>Paso 1: Plantea el sistema \n\\(2x = 5y\\)\n\\; \n\\(y = 16 - 6x\\)\n\\ .</li><li>Paso 2: Sustituye \n\\(y\\)\n\\ en la primera ecuación: \n\\(2x = 5(16 – 6x)\\)\n\\ .</li><li>Paso 3: Despeja \n\\(x\\)\n\\: \n\\( \n\\Rightarrow 2x = 80 – 30x \n\\Rightarrow x = 10/2 = 5\\)\n\\ .</li><li>Paso 4: Reemplaza \n\\(x\\)\n\\ para encontrar \n\\(y\\)\n\\: \n\\(2(5) = 5y \n\\Rightarrow y = 2\\)\n\\ .</ul>",
+    "options": [
+      {
+        "text": "En el paso \n\\(1\\)\n\\"
+      },
+      {
+        "text": "En el paso \n\\(2\\)\n\\"
+      },
+      {
+        "text": "En el paso \n\\(3\\)\n\\"
+      },
+      {
+        "text": "En el paso \n\\(4\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "En el Paso 3, Camilo resuelve \n\\(2x = 80 - 30x\\)\n\\ correctamente hasta \n\\(32x = 80\\)\n\\ . Sin embargo, al despejar \n\\(x\\)\n\\, comete un error: \n\\(x = 80/32 = 10/4 = 5/2\\)\n\\, no \n\\(10/2 = 5\\)\n\\ . Por lo tanto, el primer error se encuentra en el Paso 3.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "17",
+    "internalId": "q-1757286729865-0.7745752102797488",
+    "id": "q-ai-cat-1757286729865-3-0"
+  },
+  {
+    "text": "Si \n\\((2,1) \\cdot (x, y) = 5\\)\n\\ y \n\\((1, −1) \\cdot (x, y) = 10\\)\n\\, entonces el valor de \n\\(x\\)\n\\ es:",
+    "options": [
+      {
+        "text": "\n\\(5\\)\n\\"
+      },
+      {
+        "text": "\n\\(3\\)\n\\"
+      },
+      {
+        "text": "\n\\(−5\\)\n\\"
+      },
+      {
+        "text": "\n\\(−3\\)\n\\"
+      }
+    ],
+    "correct": 0,
+    "explanation": "Se plantean dos ecuaciones lineales a partir de los productos punto: \n\\(2x + y = 5\\)\n\\ y \n\\(x - y = 10\\)\n\\ . Sumando ambas ecuaciones, eliminamos \n\\(y\\)\n\\: \n\\((2x + y) + (x - y) = 5 + 10 \n\\Rightarrow 3x = 15\\)\n\\ . Dividiendo por \n\\(3\\)\n\\, obtenemos \n\\(x = 5\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "30",
+    "internalId": "q-1757286729865-0.9900260277064792",
+    "id": "q-ai-cat-1757286729865-3-1"
+  },
+  {
+    "text": "Una rana en una cuadrícula necesita llegar a una libélula. La rana realiza una serie de \n\\(4\\)\n\\ movimientos descritos por desplazamientos cardinales (ej: \n\\(2\\)\n\\ casillas al sur, \n\\(7\\)\n\\ al oeste...). Sin embargo, con estos cuatro movimientos, no logra su objetivo. ¿Cuál de los movimientos descritos debe omitir la rana para llegar a la libélula? (La solución requiere analizar el desplazamiento total y compararlo con la posición objetivo en la cuadrícula provista en el documento original).",
+    "options": [
+      {
+        "text": "Movimiento \n\\(1\\)\n\\"
+      },
+      {
+        "text": "Movimiento \n\\(2\\)\n\\"
+      },
+      {
+        "text": "Movimiento \n\\(3\\)\n\\"
+      },
+      {
+        "text": "Movimiento \n\\(4\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "Para determinar el movimiento a omitir, es necesario sumar vectorialmente todos los movimientos descritos y compararlos con el vector de desplazamiento total requerido para alcanzar la libélula desde la posición inicial. Si la suma vectorial de los movimientos restantes coincide con el vector objetivo, ese es el movimiento a omitir. Sin la cuadrícula y las posiciones exactas, se asume que al omitir el Movimiento \n\\(3\\)\n\\, la suma vectorial de los desplazamientos restantes lleva a la rana a su destino.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "22",
+    "internalId": "q-1757286729865-0.507093529451599",
+    "diagram": {
+      "type": "raster",
+      "src": "images/1757287823455-v1r034cnpb-Screenshot_20250907_202848.png",
+      "filename": "Screenshot_20250907_202848.png"
+    },
+    "id": "q-ai-cat-1757286729865-3-2"
+  },
+  {
+    "text": "Un caracol en \n\\((0,0)\\)\n\\ realiza los siguientes movimientos: \n\\(7\\) \n\\(\\text{m}\\)\n\\ este, \n\\(2\\) \n\\(\\text{m}\\)\n\\ norte, \n\\(4\\sqrt{2}\\) \n\\(\\text{m}\\)\n\\ sur-este, \n\\(4\\sqrt{2}\\) \n\\(\\text{m}\\)\n\\ sur-oeste y \n\\(3\\) \n\\(\\text{m}\\)\n\\ oeste. Si la posición final del caracol se representa con coordenadas, ¿cuál de los siguientes vectores de traslación le permite al caracol llegar a su posición inicial?",
+    "options": [
+      {
+        "text": "\n\\(\\vec{t}(4, 6)\\)\n\\"
+      },
+      {
+        "text": "\n\\(\\vec{v}(-4, 5)\\)\n\\"
+      },
+      {
+        "text": "\n\\(\\vec{c}(-4, 6)\\)\n\\"
+      },
+      {
+        "text": "\n\\(\\vec{p}(-4\\sqrt{2}, 2)\\)\n\\"
+      }
+    ],
+    "correct": 2,
+    "explanation": "Se calcula la posición final del caracol sumando vectorialmente todos los desplazamientos: Inicio: \n\\((0,0)\\)\n\\ ; \n\\(7\\) \n\\(\\text{m}\\)\n\\ este: \n\\((7,0)\\)\n\\ ; \n\\(2\\) \n\\(\\text{m}\\)\n\\ norte: \n\\((7,2)\\)\n\\ ; \n\\(4\\sqrt{2}\\) \n\\(\\text{m}\\)\n\\ sur-este (componentes \n\\((4, -4)\\)\n\\): Posición: \n\\((7+4, 2-4) = (11, -2)\\)\n\\ ; \n\\(4\\sqrt{2}\\) \n\\(\\text{m}\\)\n\\ sur-oeste (componentes \n\\((−4, −4)\\)\n\\): Posición: \n\\((11-4, -2-4) = (7, -6)\\)\n\\ ; \n\\(3\\) \n\\(\\text{m}\\)\n\\ oeste: \n\\((−3, 0)\\)\n\\ . Posición final: \n\\((7-3, -6+0) = (4, -6)\\)\n\\ . Para regresar a la posición inicial \n\\((0,0)\\)\n\\ desde \n\\((4,-6)\\)\n\\, el vector de traslación necesario es \n\\((0-4, 0-(-6)) = (-4, 6)\\)\n\\.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "27",
+    "internalId": "q-1757286729865-0.27022464722289685",
+    "diagram": {
+      "type": "raster",
+      "src": "images/1757287823455-kygayx6pdr9-Screenshot_20250907_202913.png",
+      "filename": "Screenshot_20250907_202913.png"
+    },
+    "id": "q-ai-cat-1757286729865-3-3"
+  },
+  {
+    "text": "Felipe, Gonzalo y Joscelyn encuentran un mapa de un tesoro con \n\\(7\\)\n\\ instrucciones de desplazamiento. Gonzalo se da cuenta que para iniciar, primero deben avanzar \n\\(100\\) \n\\(\\text{m}\\)\n\\ al sur y \n\\(600\\) \n\\(\\text{m}\\)\n\\ al oeste. Joscelyn, usando vectores, deduce que desde su posición actual solo se necesitan \n\\(2\\)\n\\ movimientos para llegar al árbol final. ¿Cuál es el movimiento que hace referencia Joscelyn? (La solución requiere sumar todos los vectores de desplazamiento del mapa y el desplazamiento inicial para encontrar el vector neto desde la posición actual hasta el tesoro).",
+    "options": [
+      {
+        "text": "\n\\(600\\) \n\\(\\text{metros}\\)\n\\ al este y \n\\(100\\) \n\\(\\text{metros}\\)\n\\ al norte."
+      },
+      {
+        "text": "\n\\(900\\) \n\\(\\text{metros}\\)\n\\ al este."
+      },
+      {
+        "text": "\n\\(300\\) \n\\(\\text{metros}\\)\n\\ al este y \n\\(100\\) \n\\(\\text{metros}\\)\n\\ al sur."
+      },
+      {
+        "text": "\n\\(400\\) \n\\(\\text{metros}\\)\n\\ al este y \n\\(300\\) \n\\(\\text{metros}\\)\n\\ al norte."
+      }
+    ],
+    "correct": 2,
+    "explanation": "Para determinar el movimiento que hace referencia Joscelyn, se deben sumar vectorialmente todos los desplazamientos dados en el mapa y el desplazamiento inicial de Gonzalo. El vector resultante de esta suma representa el desplazamiento neto desde la posición actual hasta el tesoro. Una vez obtenido este vector de desplazamiento total, se compara con las opciones para identificar la correcta. Sin los \n\\(7\\)\n\\ movimientos del mapa, se sigue la lógica de que la suma de todos los vectores de desplazamiento, incluyendo el inicial, lleva a un vector resultante que debe ser compensado por los dos movimientos de Joscelyn para llegar al árbol final. La opción C representa el desplazamiento restante si los otros movimientos han sido contabilizados.",
+    "sourceFileName": "Text Input",
+    "originalQuestionNumber": "40",
+    "internalId": "q-1757286729865-0.8576374431780606",
+    "diagram": {
+      "type": "raster",
+      "src": "images/1757287823455-wod0w9g9cj-Screenshot_20250907_202944.png",
+      "filename": "Screenshot_20250907_202944.png"
+    },
+    "id": "q-ai-cat-1757286729865-3-4"
+  }
+];
+        const categories = [
+  {
+    "id": "ai-cat-1757286729865-0",
+    "title": "Sección 1: Conceptos Fundamentales de Vectores",
+    "description": "<p>Esta sección fundamental introduce los elementos esenciales del álgebra vectorial. Es crucial comprender la distinción entre <strong>magnitudes escalares</strong> y <strong>magnitudes vectoriales</strong>.</p><ul><li>Una <strong>magnitud escalar</strong> se define completamente por un valor numérico y una unidad (ej., temperatura, masa).</li><li>Una <strong>magnitud vectorial</strong> requiere <strong>módulo</strong> (magnitud), <strong>dirección</strong> y <strong>sentido</strong> (ej., velocidad, aceleración, fuerza).</li></ul><p>Los vectores se representan comúnmente en un sistema de coordenadas \n\\((x,y)\n\\) o \n\\((x,y,z)\n\\). Para un vector con origen en \n\\(P_1 = (x_1, y_1)\n\\) y extremo en \n\\(P_2 = (x_2, y_2)\n\\), sus componentes son \n\\((x_2 - x_1, y_2 - y_1)\n\\). Dos vectores tienen la misma <strong>dirección</strong> si son paralelos (pueden ser múltiplos escalares, positivos o negativos). Tienen el mismo <strong>sentido</strong> si el escalar es positivo.</p>",
+    "summaryKey": "ai-cat-1757286729865-0",
+    "problem_ids": [
+      "q-ai-cat-1757286729865-0-0",
+      "q-ai-cat-1757286729865-0-1",
+      "q-ai-cat-1757286729865-0-2",
+      "q-ai-cat-1757286729865-0-3"
+    ]
+  },
+  {
+    "id": "ai-cat-1757286729865-1",
+    "title": "Sección 2: Operaciones y Módulo de Vectores",
+    "description": "<p>Esta sección se centra en las operaciones aritméticas básicas con vectores y el cálculo de su longitud o <strong>módulo</strong>. Las operaciones fundamentales incluyen:</p><ul><li><strong>Suma de vectores</strong>: \n\\((x_1, y_1) + (x_2, y_2) = (x_1+x_2, y_1+y_2)\\)\n\\</li><li><strong>Resta de vectores</strong>: \n\\((x_1, y_1) - (x_2, y_2) = (x_1-x_2, y_1-y_2)\\)\n\\</li><li><strong>Multiplicación por un escalar</strong> (\n\\(\\alpha\\)\n\\): \n\\(\\alpha (x,y) = (\\alpha x, \\alpha y)\\)\n\\</li></ul><p>El <strong>módulo</strong> de un vector \n\\((x,y)\\)\n\\ se calcula utilizando el teorema de Pitágoras como \n\\(\\lvert \text{vector} \rvert = \n\\sqrt{x^2 + y^2}\n\\)\n\\.</p><p>Un <strong>vector unitario</strong> es un vector cuyo módulo es \n\\(1\\)\n\\.</p>",
+    "summaryKey": "ai-cat-1757286729865-1",
+    "problem_ids": [
+      "q-ai-cat-1757286729865-1-0",
+      "q-ai-cat-1757286729865-1-1",
+      "q-ai-cat-1757286729865-1-2",
+      "q-ai-cat-1757286729865-1-3",
+      "q-ai-cat-1757286729865-1-4",
+      "q-ai-cat-1757286729865-1-5"
+    ]
+  },
+  {
+    "id": "ai-cat-1757286729865-2",
+    "title": "Sección 3: Paralelismo, Perpendicularidad y Producto Punto",
+    "description": "<p>Esta sección introduce conceptos clave para analizar la relación geométrica entre vectores.</p><ul><li>Dos vectores \n\\(\\vec{u}\\)\n\\ y \n\\(\\vec{v}\\)\n\\ son <strong>paralelos</strong> si uno es un múltiplo escalar del otro: \n\\(\\vec{u} = k \t\\times \n\\vec{v}\\)\n\\ para algún escalar \n\\(k \\neq 0\\)\n\\ . Si \n\\(k > 0\\)\n\\, tienen el mismo sentido; si \n\\(k < 0\\)\n\\, tienen sentido opuesto.</li><li>Dos vectores \n\\(\\vec{u} = (x_1, y_1)\\)\n\\ y \n\\(\\vec{v} = (x_2, y_2)\\)\n\\ son <strong>perpendiculares</strong> (ortogonales) si su <strong>producto punto</strong> (o producto escalar) es cero.</li></ul><p>El <strong>producto punto</strong> se define como: \n\\[ \\vec{u} \\cdot \\vec{v} = x_1 x_2 + y_1 y_2 \\]\n\\ </p><p>Alternativamente, el producto punto también se relaciona con el ángulo \n\\(\\theta\\)\n\\ entre los vectores: \n\\[ \\vec{u} \\cdot \\vec{v} = \\lvert \\vec{u} \\rvert \\lvert \\vec{v} \\rvert \\cos(\\theta) \\]\n\\ </p><p>De esta relación, se deduce que el producto punto es negativo si el ángulo \n\\(\\theta\\)\n\\ está en el rango \n\\((90^\n\\circ\n\\, 270^\n\\circ)\\)\n\\ (es decir, \n\\(\\cos(\\theta) < 0\\)\n\\).</p>",
+    "summaryKey": "ai-cat-1757286729865-2",
+    "problem_ids": [
+      "q-ai-cat-1757286729865-2-0",
+      "q-ai-cat-1757286729865-2-1",
+      "q-ai-cat-1757286729865-2-2",
+      "q-ai-cat-1757286729865-2-3",
+      "q-ai-cat-1757286729865-2-4"
+    ]
+  },
+  {
+    "id": "ai-cat-1757286729865-3",
+    "title": "Sección 4: Aplicaciones y Resolución de Problemas Complejos",
+    "description": "<p>Esta sección integra todos los conceptos de las secciones anteriores para abordar problemas más elaborados. Se requiere aplicar el álgebra vectorial para:</p><ul><li><strong>Resolver sistemas de ecuaciones</strong> derivados de la igualdad de componentes vectoriales (ej., \n\\((ax, by) = (cx, dy)\\)\n\\ implica \n\\(ax=cx\\)\n\\ y \n\\(by=dy)\\)\n\\).</li><li><strong>Analizar desplazamientos</strong> en un plano, sumando vectorialmente movimientos sucesivos para encontrar una posición final o un vector de traslación neto.</li><li><strong>Identificar errores</strong> en procedimientos de cálculo vectorial, prestando atención a cada paso de las operaciones.</li></ul><p>Los problemas de desplazamiento a menudo involucran la descomposición de vectores en sus componentes cardinales (Norte, Sur, Este, Oeste) y la suma de estas componentes.</p>",
+    "summaryKey": "ai-cat-1757286729865-3",
+    "problem_ids": [
+      "q-ai-cat-1757286729865-3-0",
+      "q-ai-cat-1757286729865-3-1",
+      "q-ai-cat-1757286729865-3-2",
+      "q-ai-cat-1757286729865-3-3",
+      "q-ai-cat-1757286729865-3-4"
+    ]
+  }
+];
+
+        const problemsById = {};
+        allProblemsData.forEach(p => { problemsById[p.id] = p; });
+        
+        let currentQuizProblems = [];
+        let currentCategory = null;
+        let completedCategories = JSON.parse(localStorage.getItem('completedQuizCategories')) || {};
+        let currentProblemIndex = 0;
+        let score = 0;
+        
+        const categorySelectionScreen = document.getElementById('category-selection-screen');
+        const categoryListEl = document.getElementById('category-list');
+        const overallProgressContainer = document.getElementById('overall-progress-container');
+        const overallScoreEl = document.getElementById('overall-score');
+        const showFinalResultsBtn = document.getElementById('show-final-results-btn');
+        const quizWrapperEl = document.getElementById('quiz-wrapper');
+        const summaryContainerEl = document.getElementById('summary-container');
+        const summaryContinueBtn = document.getElementById('summary-continue-btn');
+        const quizContainerEl = document.getElementById('quiz-container');
+        const headerEl = document.getElementById('problem-header');
+        const questionEl = document.getElementById('question-container');
+        const graphEl = document.getElementById('graph-container');
+        const optionsEl = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback-container');
+        const nextButton = document.getElementById('next-button');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreCounterEl = document.getElementById('score-counter');
+        const finalScreenEl = document.getElementById('final-screen');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+
+        function renderCategoryScreen() {
+            categoryListEl.innerHTML = '';
+            let totalCompleted = 0;
+            let totalPossibleScore = 0;
+            let totalUserScore = 0;
+
+            categories.forEach(cat => {
+                const li = document.createElement('li');
+                li.className = 'category-item';
+                li.dataset.categoryId = cat.id;
+                
+                const catProgress = completedCategories[cat.id];
+                let progressHTML = '';
+                if(catProgress) {
+                    li.classList.add('completed');
+                    if (catProgress.total > 0) {
+                        progressHTML = `<div class="progress-info">Completado: ${catProgress.score}/${catProgress.total}</div>`;
+                    }
+                    totalCompleted++;
+                    totalUserScore += catProgress.score;
+                    totalPossibleScore += cat.problem_ids.length;
+                }
+
+                li.innerHTML = `<h3>${cat.title}</h3><p>${cat.description.replace(/<[^>]*>?/gm, '').substring(0, 100)}...</p>${progressHTML}`;
+                li.onclick = () => {
+                    if (!li.classList.contains('completed')) {
+                        startCategory(cat.id);
+                    }
+                };
+                categoryListEl.appendChild(li);
+            });
+
+            if (Object.keys(completedCategories).length > 0) {
+                overallProgressContainer.classList.remove('hidden');
+                overallScoreEl.textContent = `Puntaje total: ${totalUserScore} de ${totalPossibleScore} correctas. Secciones completadas: ${totalCompleted} de ${categories.length}.`;
+            } else {
+                 overallProgressContainer.classList.add('hidden');
+            }
+
+            if (totalCompleted === categories.length && categories.length > 0) {
+                showFinalResultsBtn.classList.remove('hidden');
+            } else {
+                showFinalResultsBtn.classList.add('hidden');
+            }
+
+            quizWrapperEl.classList.add('hidden');
+            categorySelectionScreen.classList.remove('hidden');
+        }
+
+        function startCategory(categoryId) {
+            currentCategory = categories.find(c => c.id === categoryId);
+            if (!currentCategory) return;
+            
+            categorySelectionScreen.classList.add('hidden');
+            quizWrapperEl.classList.remove('hidden');
+
+            currentQuizProblems = currentCategory.problem_ids.map(id => problemsById[id]);
+            currentProblemIndex = 0;
+            score = 0;
+            
+            showSummary(currentCategory.id);
+        }
+
+        function showSummary(summaryKey) {
+            const summary = summaries[summaryKey];
+            if (!summary) {
+                 summaryContinueBtn.onclick(); return;
+            }
+            
+            const summaryTitleEl = document.getElementById('summary-title');
+            const keyConceptsEl = document.getElementById('summary-key-concepts');
+            const tipsListEl = document.getElementById('summary-tips-list');
+    
+            summaryTitleEl.textContent = `Preparación para: ${summary.title}`;
+            keyConceptsEl.innerHTML = summary.key_concepts_html;
+            
+            tipsListEl.innerHTML = '';
+            summary.tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsListEl.appendChild(li);
+            });
+            
+            renderMath();
+            quizContainerEl.classList.add('hidden');
+            finalScreenEl.classList.add('hidden');
+            summaryContainerEl.classList.remove('hidden');
+        }
+
+        summaryContinueBtn.onclick = () => {
+            summaryContainerEl.classList.add('hidden');
+            if (currentQuizProblems && currentQuizProblems.length > 0) {
+                quizContainerEl.classList.remove('hidden');
+                renderProblem(currentProblemIndex);
+            } else {
+                endOfCategory();
+            }
+        };
+        
+        function renderProblem(index) {
+            optionsEl.innerHTML = '';
+            feedbackEl.style.display = 'none';
+            nextButton.classList.remove('visible');
+            graphEl.innerHTML = '';
+            optionsEl.className = '';
+
+            const problem = currentQuizProblems[index];
+            if (!problem) {
+                console.error("Could not find problem for index:", index, "in category:", currentCategory.title);
+                questionEl.innerHTML = "Error: No se pudo cargar la pregunta. Verifique que los datos sean correctos.";
+                return;
+            }
+
+            headerEl.textContent = `Pregunta ${index + 1} de ${currentQuizProblems.length}`;
+            questionEl.innerHTML = problem.text;
+            progressBar.style.width = `${((index) / currentQuizProblems.length) * 100}%`;
+            scoreCounterEl.textContent = `✅ Puntos: ${score}`;
+            
+            if (problem.diagram) {
+                graphEl.style.display = 'block';
+                graphEl.innerHTML = renderDiagram(problem.diagram);
+            } else {
+                graphEl.style.display = 'none';
+            }
+            
+            const optionsHaveDiagrams = problem.options.some(opt => opt.diagram);
+
+            if (optionsHaveDiagrams) {
+                 optionsEl.className = 'options-grid-with-graphs';
+                 problem.options.forEach((opt, i) => createOptionBlock(opt, i));
+            } else {
+                 problem.options.forEach((opt, i) => createOptionButton(opt, i));
+            }
+            renderMath();
+        }
+        
+        function createOptionButton(option, index) {
+            const button = document.createElement('button');
+            button.className = 'option-button';
+            button.dataset.index = index;
+            button.innerHTML = `<span class="label">${String.fromCharCode(65 + index)})</span> <span class="value">${option.text || ''}</span>`;
+            button.onclick = handleOptionClick;
+            optionsEl.appendChild(button);
+        }
+        
+        function createOptionBlock(option, index) {
+            const optionBlock = document.createElement('div');
+            optionBlock.className = 'option-block-graph';
+            optionBlock.dataset.index = index;
+            optionBlock.onclick = handleOptionClick;
+            let diagramHTML = option.diagram ? `<div class="option-graph-canvas-container">${renderDiagram(option.diagram)}</div>` : '';
+            optionBlock.innerHTML = `<div class="label">${String.fromCharCode(65 + index)}) ${option.text || ''}</div> ${diagramHTML}`;
+            optionsEl.appendChild(optionBlock);
+        }
+
+        function handleOptionClick(event) {
+            const problem = currentQuizProblems[currentProblemIndex];
+            const selectedIndex = parseInt(event.currentTarget.dataset.index, 10);
+            const correctIndex = problem.correct;
+            
+            const correctButton = document.querySelector(`[data-index="${correctIndex}"]`);
+            if (correctButton) correctButton.classList.add('correct');
+            
+            let isAnswerCorrect = false;
+            const selectedButton = event.currentTarget;
+            if (selectedIndex === correctIndex) {
+                score++;
+                isAnswerCorrect = true;
+            } else {
+                selectedButton.classList.add('incorrect');
+            }
+            
+            scoreCounterEl.textContent = `✅ Puntos: ${score}`;
+            document.querySelectorAll('.option-button, .option-block-graph').forEach(btn => { btn.classList.add('disabled'); btn.onclick = null; });
+            progressBar.style.width = `${((currentProblemIndex + 1) / currentQuizProblems.length) * 100}%`;
+            
+            feedbackEl.className = isAnswerCorrect ? 'feedback-container correct' : 'feedback-container incorrect';
+            const feedbackTitle = isAnswerCorrect ? `<div id="feedback-title">${icons.check} Correcto</div>` : `<div id="feedback-title">${icons.x} Incorrecto</div>`;
+            feedbackEl.innerHTML = `${feedbackTitle}${problem.explanation}`;
+            
+            renderMath();
+            feedbackEl.style.display = 'block';
+            if (currentProblemIndex < currentQuizProblems.length - 1) { nextButton.textContent = 'Siguiente →'; } 
+            else { nextButton.textContent = 'Finalizar Sección'; }
+            nextButton.classList.add('visible');
+        }
+
+        nextButton.onclick = () => {
+            currentProblemIndex++;
+            if (currentProblemIndex < currentQuizProblems.length) {
+                renderProblem(currentProblemIndex);
+            } else {
+                endOfCategory();
+            }
+        };
+        
+        function endOfCategory() {
+            completedCategories[currentCategory.id] = {
+                score: score,
+                total: currentQuizProblems.length
+            };
+            localStorage.setItem('completedQuizCategories', JSON.stringify(completedCategories));
+            
+            quizContainerEl.classList.add('hidden');
+            finalScreenEl.classList.remove('hidden');
+
+            const percentage = currentQuizProblems.length > 0 ? Math.round((score / currentQuizProblems.length) * 100) : 100;
+            document.getElementById('final-title').textContent = `Sección Completada: ${currentCategory.title}`;
+            document.getElementById('final-message').textContent = currentQuizProblems.length > 0 ? `¡Gran trabajo! Has completado esta sección.` : `¡Concepto explorado! Ahora puedes continuar con la siguiente sección.`;
+            document.getElementById('final-score').textContent = currentQuizProblems.length > 0 ? `${score} / ${currentQuizProblems.length}` : '✔';
+            const finalPercentageEl = document.getElementById('final-percentage');
+            if (currentQuizProblems.length > 0) {
+                finalPercentageEl.textContent = `(${percentage}%)`;
+                finalPercentageEl.style.color = percentage >= 60 ? 'var(--success-color)' : 'var(--danger-color)';
+            } else {
+                finalPercentageEl.textContent = '';
+            }
+            backToMenuBtn.textContent = 'Volver al Menú';
+            backToMenuBtn.onclick = () => {
+                finalScreenEl.classList.add('hidden');
+                renderCategoryScreen();
+            };
+        }
+        
+        showFinalResultsBtn.onclick = () => {
+            categorySelectionScreen.classList.add('hidden');
+            quizWrapperEl.classList.remove('hidden');
+
+            summaryContainerEl.classList.add('hidden');
+            quizContainerEl.classList.add('hidden');
+            finalScreenEl.classList.remove('hidden');
+
+            let totalScore = 0;
+            let totalProblems = 0;
+            Object.values(completedCategories).forEach(cat => {
+                totalScore += cat.score;
+                if (cat.total > 0) {
+                    totalProblems += cat.total;
+                }
+            });
+
+            const percentage = totalProblems > 0 ? Math.round((totalScore / totalProblems) * 100) : 0;
+            document.getElementById('final-title').textContent = '¡Resumen Final del Desafío!';
+            document.getElementById('final-message').textContent = '¡Felicidades! Has completado todos los temas. Este es tu rendimiento general.';
+            document.getElementById('final-score').textContent = `${totalScore} / ${totalProblems}`;
+            const finalPercentageEl = document.getElementById('final-percentage');
+            finalPercentageEl.textContent = `(${percentage}%)`;
+            finalPercentageEl.style.color = percentage >= 60 ? 'var(--success-color)' : 'var(--danger-color)';
+            
+            backToMenuBtn.textContent = 'Reiniciar Desafío';
+            backToMenuBtn.onclick = () => {
+                localStorage.removeItem('completedQuizCategories');
+                window.location.reload();
+            };
+        };
+        
+        renderCategoryScreen();
+        renderMath();
+    });
+    </script>
+</body>
+</html>
+  
